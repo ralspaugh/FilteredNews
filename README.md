@@ -8,7 +8,7 @@ Build Elm front end
 elm-make Main.elm --output main.js
 ```
 
-Add Twitter API to config file
+Add Twitter API keys to config file
 
 `filtered-news-server/config.json`:
 
