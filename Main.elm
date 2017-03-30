@@ -22,38 +22,51 @@ articleDecoder = map2 Article (field "text" string) (field "url" string)
 jsonToArticle : String -> Maybe Article
 jsonToArticle json = Result.toMaybe (decodeString articleDecoder json)
 
+
 -- MODEL
 
 type alias Model =
   { articles : List Article
+  , filteredArticles : List Article
+  , filters : List String
   }
 
 init : ( Model, Cmd Msg )
-init = ({articles= []}, Cmd.none)
+init = ({articles = [], filteredArticles = [], filters = []}, Cmd.none)
 
 
 -- UPDATE
 
 type alias Article = { text: String, url: String }
 
-type Msg = NewMessage String
+type Msg = NewArticle String | FilterUpdate String
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg {articles} =
+update msg model =
   case msg of
-    NewMessage json ->
+    NewArticle json ->
       case jsonToArticle json of
         Just article ->
-          (Model (article :: articles), Cmd.none)
+          ({ model | articles = (article :: model.articles), filteredArticles = (filterArticles model.filters (article :: model.articles)) }, Cmd.none)
         Nothing ->
-          (Model articles, Cmd.none)
+          (model, Cmd.none)
+    FilterUpdate text ->
+      ({ model | filteredArticles = (filterArticles (String.split "," text) model.articles), filters = (String.split "," text) }, Cmd.none)
+
+filterArticles : List String -> List Article -> List Article
+filterArticles filters articles =
+  if filters == [""] then articles else List.filter (\a -> articleFilter filters a) articles
+
+articleFilter : List String -> Article -> Bool
+articleFilter filters article =
+  not (List.any (\filterText -> String.contains (String.toLower filterText) (String.toLower article.text)) filters)
 
 
 -- SUBSCRIPTIONS
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  WebSocket.listen "ws://localhost:8080" NewMessage
+  WebSocket.listen "ws://localhost:8080" NewArticle
 
 
 -- VIEW
@@ -61,10 +74,14 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
   div [ class "page-container" ]
-    [ div [ class "header" ] [ h1 [] [ text "Filtered News" ], small [] [ text "'cause sometimes you just need to relax." ]],
-      div [ class "main-content" ] (List.map viewArticle model.articles)
+    [ div [ class "header" ] [ h1 [] [ text "Filtered News" ], small [] [ text "get the news you want." ], filtersView ]
+    , div [ class "main-content" ] (List.map articleView model.filteredArticles)
     ]
 
-viewArticle : Article -> Html article
-viewArticle article =
+articleView : Article -> Html Msg
+articleView article =
   div [ class "article" ] [ a [ href article.url, target "_blank" ] [ text article.text ] ]
+
+filtersView : Html Msg
+filtersView =
+  div [ class "filters" ] [ input [ placeholder "filters", onInput  FilterUpdate ] [] ]

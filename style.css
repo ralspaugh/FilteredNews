@@ -59,3 +59,25 @@ body {
   color: initial;
   text-decoration: none;
 }
+
+@media (min-width: 890px) {
+  .filters {
+    position: absolute;
+    right: 50px;
+    top: 50px;
+    width: 50%;
+  }
+}
+
+@media (max-width: 890px) {
+  .filters {
+    width: 90%;
+    position: absolute;
+    top: 75px;
+    left: 15px;
+  }
+}
+
+.filters > input {
+  width: 100%
+}

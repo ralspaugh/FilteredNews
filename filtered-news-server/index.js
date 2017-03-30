@@ -15,6 +15,7 @@ wss.broadcast = function broadcast(data) {
 };
 
 wss.on('connection', function connection(ws) {
+  console.log('sending history');
   history.forEach(a => ws.send(JSON.stringify(a)));
 });
 
