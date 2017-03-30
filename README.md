@@ -21,10 +21,16 @@ Add Twitter API keys to config file
 }
 ```
 
-Start node server
+Install node package
 
 ```
 cd filtered-news-server
+npm install
+```
+
+Start node server
+
+```
 npm start
 ```
 
